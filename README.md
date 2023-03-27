@@ -6,10 +6,17 @@
 </div>
 </br>
 
+## 说明
+> **此项目 Fork 自 [Chanzhaoyu/chatgpt-web](https://github.com/Chanzhaoyu/chatgpt-web), 除了定时合并该分支, 新增了部分特色功能, 注册&登录, 前端页面设置apikey 等**
+</br>
+
+## 截图
 > 声明：此项目只发布于 Github，基于 MIT 协议，免费且作为开源学习使用。并且不会有任何形式的卖号、付费服务、讨论群、讨论组等行为。谨防受骗。
 
+![cover3](./docs/login.jpg)
 ![cover](./docs/c1.png)
 ![cover2](./docs/c2.png)
+![cover3](./docs/basesettings.jpg)
 
 - [ChatGPT Web](#chatgpt-web)
 	- [介绍](#介绍)
@@ -56,7 +63,7 @@
 1. 你应该首先使用 `API` 方式
 2. 使用 `API` 时，如果网络不通，那是国内被墙了，你需要自建代理，绝对不要使用别人的公开代理，那是危险的。
 3. 使用 `accessToken` 方式时反向代理将向第三方暴露您的访问令牌，这样做应该不会产生任何不良影响，但在使用这种方法之前请考虑风险。
-4. 使用 `accessToken` 时，不管你是国内还是国外的机器，都会使用代理。默认代理为 [acheong08](https://github.com/acheong08) 大佬的 `https://bypass.churchless.tech/api/conversation`，这不是后门也不是监听，除非你有能力自己翻过 `CF` 验证，用前请知悉。[社区代理](https://github.com/transitive-bullshit/chatgpt-api#reverse-proxy)（注意：只有这两个是推荐，其他第三方来源，请自行甄别）
+4. 使用 `accessToken` 时，不管你是国内还是国外的机器，都会使用代理。默认代理为 [acheong08](https://github.com/acheong08) 大佬的 `https://bypass.duti.tech/api/conversation`，这不是后门也不是监听，除非你有能力自己翻过 `CF` 验证，用前请知悉。[社区代理](https://github.com/transitive-bullshit/chatgpt-api#reverse-proxy)（注意：只有这两个是推荐，其他第三方来源，请自行甄别）
 5. 把项目发布到公共网络时，你应该设置 `AUTH_SECRET_KEY` 变量添加你的密码访问权限，你也应该修改 `index.html` 中的 `title`，防止被关键词搜索到。
 
 切换方式：
@@ -80,7 +87,9 @@
 
 [✓] 对代码等消息类型的格式化美化处理
 
-[✓] 访问权限控制
+[✓] 支持用户登录注册
+
+[✓] 前端页面设置 apikey 等信息
 
 [✓] 数据导入、导出
 
@@ -165,7 +174,7 @@ pnpm dev
 `ACCESS_TOKEN` 可用：
 
 - `OPENAI_ACCESS_TOKEN`  和 `OPENAI_API_KEY` 二选一，同时存在时，`OPENAI_API_KEY` 优先
-- `API_REVERSE_PROXY` 设置反向代理，可选，默认：`https://bypass.churchless.tech/api/conversation`，[社区](https://github.com/transitive-bullshit/chatgpt-api#reverse-proxy)（注意：只有这两个是推荐，其他第三方来源，请自行甄别）
+- `API_REVERSE_PROXY` 设置反向代理，可选，默认：`https://bypass.duti.tech/api/conversation`，[社区](https://github.com/transitive-bullshit/chatgpt-api#reverse-proxy)（注意：只有这两个是推荐，其他第三方来源，请自行甄别）
 
 通用：
 
@@ -202,17 +211,22 @@ http://localhost:3002/
 
 #### Docker compose
 
-[Hub 地址](https://hub.docker.com/repository/docker/chenzhaoyu94/chatgpt-web/general)
+[Hub 地址](https://hub.docker.com/repository/docker/kerwin1202/chatgpt-web/general)
 
 ```yml
 version: '3'
 
 services:
   app:
-    image: chenzhaoyu94/chatgpt-web # 总是使用 latest ,更新时重新 pull 该 tag 镜像即可
+    image: kerwin1202/chatgpt-web # 总是使用latest,更新时重新pull该tag镜像即可
+    container_name: chatgptweb
+    restart: unless-stopped
     ports:
-      - 127.0.0.1:3002:3002
+      - 3002:3002
+    depends_on:
+      - database
     environment:
+      TZ: Asia/Shanghai
       # 二选一
       OPENAI_API_KEY: sk-xxx
       # 二选一
@@ -223,8 +237,6 @@ services:
       OPENAI_API_MODEL: xxx
       # 反向代理，可选
       API_REVERSE_PROXY: xxx
-      # 访问权限密钥，可选
-      AUTH_SECRET_KEY: xxx
       # 每小时最大请求次数，可选，默认无限
       MAX_REQUEST_PER_HOUR: 0
       # 超时，单位毫秒，可选
@@ -235,6 +247,48 @@ services:
       SOCKS_PROXY_PORT: xxx
       # HTTPS 代理，可选，支持 http，https，socks5
       HTTPS_PROXY: http://xxx:7890
+      # 访问jwt加密参数，可选 不为空则允许登录 同时需要设置 MONGODB_URL
+      AUTH_SECRET_KEY: xxx
+      # 网站名称
+      SITE_TITLE: ChatGpt Web
+      # mongodb 的连接字符串
+      MONGODB_URL: 'mongodb://chatgpt:xxxx@database:27017'
+      # 网站是否开启注册
+      REGISTER_ENABLED: true
+      # 开启注册之后 网站注册允许的邮箱后缀 如果空 则允许任意后缀
+      REGISTER_MAILS: '@qq.com,@sina.com,@163.com'
+      # 开启注册之后 密码加密的盐
+      PASSWORD_MD5_SALT: xxx
+      # 开启注册之后 超级管理邮箱
+      ROOT_USER: me@example.com
+      # 开启注册之后 网站域名 不含 / 注册的时候发送验证邮箱使用
+      SITE_DOMAIN: http://127.0.0.1:3002
+      # 开启注册之后 发送验证邮箱配置
+      SMTP_HOST: smtp.exmail.qq.com
+      SMTP_PORT: 465
+      SMTP_TSL: true
+      SMTP_USERNAME: noreply@examile.com
+      SMTP_PASSWORD: xxx
+    links:
+      - database
+
+  database:
+    image: mongo
+    container_name: chatgptweb-database
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    expose:
+      - '27017'
+    volumes:
+      - mongodb:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: chatgpt
+      MONGO_INITDB_ROOT_PASSWORD: xxxx
+      MONGO_INITDB_DATABASE: chatgpt
+
+volumes:
+  mongodb: {}
 ```
 - `OPENAI_API_BASE_URL`  可选，设置 `OPENAI_API_KEY` 时可用
 - `OPENAI_API_MODEL`  可选，设置 `OPENAI_API_KEY` 时可用
@@ -321,19 +375,7 @@ A: 一种可能原因是经过 Nginx 反向代理，开启了 buffer，则 Nginx
 </a>
 
 ## 赞助
-
-如果你觉得这个项目对你有帮助，并且情况允许的话，可以给我一点点支持，总之非常感谢支持～
-
-<div style="display: flex; gap: 20px;">
-	<div style="text-align: center">
-		<img style="max-width: 100%" src="./docs/wechat.png" alt="微信" />
-		<p>WeChat Pay</p>
-	</div>
-	<div style="text-align: center">
-		<img style="max-width: 100%" src="./docs/alipay.png" alt="支付宝" />
-		<p>Alipay</p>
-	</div>
-</div>
+如果你觉得这个项目对你有帮助，请给我点个Star。
 
 ## License
-MIT © [ChenZhaoYu](./license)
+MIT © [Kerwin1202](./license)

@@ -1,6 +1,9 @@
 import type { FetchFn } from 'chatgpt'
 
 export interface RequestProps {
+  roomId: number
+  uuid: number
+  regenerate: boolean
   prompt: string
   options?: ChatContext
   systemMessage: string
@@ -26,6 +29,7 @@ export interface ModelConfig {
   timeoutMs?: number
   socksProxy?: string
   httpsProxy?: string
+  allowRegister?: boolean
   balance?: string
 }
 

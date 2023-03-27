@@ -6,10 +6,17 @@
 </div>
 </br>
 
+## Introduction
+> **This project is forked from [Chanzhaoyu/chatgpt-web](https://github.com/Chanzhaoyu/chatgpt-web). In addition to regularly merging this branch, some unique features have been added such as registration and login, setting API key on the front-end page.**
+</br>
+
+## Screenshots
 > Disclaimer: This project is only released on GitHub, under the MIT License, free and for open-source learning purposes. There will be no account selling, paid services, discussion groups, or forums. Beware of fraud.
 
+![cover3](./docs/login.jpg)
 ![cover](./docs/c1.png)
 ![cover2](./docs/c2.png)
+![cover3](./docs/basesettings.jpg)
 
 - [ChatGPT Web](#chatgpt-web)
 	- [Introduction](#introduction)
@@ -84,7 +91,9 @@ For all parameter variables, check [here](#docker-parameter-example) or see:
 
 [✓] Formatting and beautifying code-like message types
 
-[✓] Access rights control
+[✓] Login or Register
+
+[✓] Set API key and other information on the front-end page.
 
 [✓] Data import and export
 
@@ -196,17 +205,22 @@ http://localhost:3002/
 
 #### Docker Compose
 
-[Hub Address](https://hub.docker.com/repository/docker/chenzhaoyu94/chatgpt-web/general)
+[Hub Address](https://hub.docker.com/repository/docker/kerwin1202/chatgpt-web/general)
 
 ```yml
 version: '3'
 
 services:
   app:
-    image: chenzhaoyu94/chatgpt-web # always use latest, pull the tag image again when updating
+    image: kerwin1202/chatgpt-web # always use latest, pull the tag image again when updating
+    container_name: chatgptweb
+    restart: unless-stopped
     ports:
-      - 127.0.0.1:3002:3002
+      - 3002:3002
+    depends_on:
+      - database
     environment:
+      TZ: Asia/Shanghai
       # one of two
       OPENAI_API_KEY: xxxxxx
       # one of two
@@ -217,8 +231,6 @@ services:
       OPENAI_API_MODEL: xxxx
       # reverse proxy, optional
       API_REVERSE_PROXY: xxx
-      # access password，optional
-      AUTH_SECRET_KEY: xxx
       # timeout, in milliseconds, optional
       TIMEOUT_MS: 60000
       # socks proxy, optional, effective with SOCKS_PROXY_PORT
@@ -227,6 +239,48 @@ services:
       SOCKS_PROXY_PORT: xxxx
       # HTTPS Proxy，optional, support http, https, socks5
       HTTPS_PROXY: http://xxx:7890
+      # Title for site
+      SITE_TITLE: ChatGpt Web
+      # access salt，optional Allow login if not empty.
+      AUTH_SECRET_KEY: xxx
+      # mongodb's connection string
+      MONGODB_URL: 'mongodb://chatgpt:xxxx@database:27017'
+      # Register enabled
+      REGISTER_ENABLED: true
+      # After register enabled, Allowed mailbox suffixes for website registration. If empty, any suffix is allowed
+      REGISTER_MAILS: '@qq.com,@sina.com,@163.com'
+      # After register enabled, Salt for password encryption
+      PASSWORD_MD5_SALT: xxx
+      # After register enabled, super administrator
+      ROOT_USER: me@example.com
+      # After register enabled, The website's domain ending without /
+      SITE_DOMAIN: http://127.0.0.1:3002
+      # After register enabled, The smtp settings
+      SMTP_HOST: smtp.exmail.qq.com
+      SMTP_PORT: 465
+      SMTP_TSL: true
+      SMTP_USERNAME: noreply@examile.com
+      SMTP_PASSWORD: xxx
+    links:
+      - database
+
+  database:
+    image: mongo
+    container_name: chatgptweb-database
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    expose:
+      - '27017'
+    volumes:
+      - mongodb:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: chatgpt
+      MONGO_INITDB_ROOT_PASSWORD: xxxx
+      MONGO_INITDB_DATABASE: chatgpt
+
+volumes:
+  mongodb: {}
 ```
 The `OPENAI_API_BASE_URL` is optional and only used when setting the `OPENAI_API_KEY`.
 The `OPENAI_API_MODEL` is optional and only used when setting the `OPENAI_API_KEY`.
@@ -304,10 +358,6 @@ Q: Why doesn't the frontend have a typewriter effect?
 
 A: One possible reason is that after Nginx reverse proxying, buffering is turned on, and Nginx will try to buffer a certain amount of data from the backend before sending it to the browser. Please try adding `proxy_buffering off;` after the reverse proxy parameter and then reloading Nginx. Other web server configurations are similar.
 
-Q: The content returned is incomplete?
-
-A: There is a length limit for the content returned by the API each time. You can modify the `VITE_GLOB_OPEN_LONG_REPLY` field in the `.env` file under the root directory, set it to `true`, and rebuild the front-end to enable the long reply feature, which can return the full content. It should be noted that using this feature may bring more API usage fees.
-
 ## Contributing
 
 Please read the [Contributing Guidelines](./CONTRIBUTING.en.md) before contributing.
@@ -320,18 +370,7 @@ Thanks to all the contributors!
 
 ## Sponsorship
 
-If you find this project helpful and circumstances permit, you can give me a little support. Thank you very much for your support~
-
-<div style="display: flex; gap: 20px;">
-	<div style="text-align: center">
-		<img style="max-width: 100%" src="./docs/wechat.png" alt="WeChat" />
-		<p>WeChat Pay</p>
-	</div>
-	<div style="text-align: center">
-		<img style="max-width: 100%" src="./docs/alipay.png" alt="Alipay" />
-		<p>Alipay</p>
-	</div>
-</div>
+If you find this project helpful, please give me a star.
 
 ## License
-MIT © [ChenZhaoYu](./license)
+MIT © [Kerwin1202](./license)
